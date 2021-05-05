@@ -1,0 +1,20 @@
+{
+  "name": "vuex-debug-plugin",
+  "version": "1.0.0",
+  "description": "### 面向问题 采用Vuex后MVC模式导致前端查询属性数据来源对应的接口麻烦的问题；尤其公共接口，不熟悉的同学要一遍遍找后端同学确定，很多无用功；",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sympath/vuex-debug-plugin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sympath/vuex-debug-plugin/issues"
+  },
+  "homepage": "https://github.com/Sympath/vuex-debug-plugin#readme"
+}
