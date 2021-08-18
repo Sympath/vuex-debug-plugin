@@ -1,5 +1,6 @@
-import {callFn,eachObj, typeCheck,tf,getVal} from '../util';
-import WeTableDynamic from './components/we-table-dynamic.vue';
+import {callFn,eachObj, typeCheck,tf,getVal, compareObj} from '../util';
+import tableRender from './components/we-table-dynamic.js';
+import { setStyle } from './libs/dom';
 function pluginFn(options){
     let h; // 用于存储$createElement函数
     let {
@@ -26,6 +27,11 @@ function pluginFn(options){
         {
           label: 'Getter（对应的属性）',
           prop: 'getter',
+          width: '200'
+        },
+        {
+          label: 'Action',
+          prop: 'action',
           width: '200'
         },
         {
@@ -65,12 +71,30 @@ function pluginFn(options){
         renderVmDebugPlugin();
         function importPlugin(){
             //  mixin 此处要注入路由切换时清空targetList的逻辑
-            Vue.component('WeTableDynamic',WeTableDynamic)
+            // Vue.component('WeTableDynamic',WeTableDynamic)
         }
         // 渲染插件
         function renderVmDebugPlugin() {
           renderChooseBtn()
           // renderChoosePhanel()
+          setStyle({
+            'vuex-msgbox': {
+                width: '1000px!important'
+            },
+            'vuex-msgbox .el-col-12':{
+                height: '40px'
+            },
+            'vuex-msgbox .vuex-link': {
+                color: '#ccc'
+            },
+            'vuex-msgbox .vuex-link span.actived': {
+                color: '#409EFF'
+            },
+            'vuex-msgbox .vuex-link.actived': {
+                color: '#409EFF'
+            }
+    
+        })
         }
         // 渲染控制的按钮
         function renderChooseBtn(){
@@ -126,14 +150,6 @@ function pluginFn(options){
           },childrens:[]};
           let div2 = creatDom(domOptions2)
           mountToBody(div2)
-          let styleOption = {
-              tag: 'style',
-              text: `.vuex-msgbox {
-                  width: 1000px!important
-              }`
-          }
-          let styleDom = creatDom(styleOption)
-          document.getElementsByTagName('head').item(0).appendChild(styleDom);
         }
         // 需重写 以实现无elementUi 的情况
         // 渲染显示的面板
@@ -154,14 +170,12 @@ function pluginFn(options){
           
           function _renderChoosePhanelForElement(){
             function generateTableComponent(columns,list){
-                return (
-                    <we-table-dynamic
-                        columns={columns}
-                        tableProps={tableProps}
-                        list={list}
-                    >
-                    </we-table-dynamic>
-                )
+              return tableRender(h, {
+                    columns,
+                    tableProps,
+                    list
+                  })
+                
             }
             let message = generateTableComponent(tableColumns,targetList)
             Vue.prototype.$msgbox({ 
@@ -183,45 +197,45 @@ function pluginFn(options){
               }
             },()=>{})
           }
-          function _renderChoosePhanelForNormal() {
-            // 渲染无elementUi状态下的插件面板 w-todo
-            function generateTableComponent(columns,list){
-              return (
-                <div>
-                  <table table className='tabel' border="2">
-                    <thead className='theads'>
-                      <tr>
-                        {
-                        columns.map((head,index)=>
-                          <th key={index}>{head.label}</th> ) 
-                        }
-                      </tr>
-                    </thead>
+          // function _renderChoosePhanelForNormal() {
+          //   // 渲染无elementUi状态下的插件面板 w-todo
+          //   function generateTableComponent(columns,list){
+          //     return (
+          //       <div>
+          //         <table table className='tabel' border="2">
+          //           <thead className='theads'>
+          //             <tr>
+          //               {
+          //               columns.map((head,index)=>
+          //                 <th key={index}>{head.label}</th> ) 
+          //               }
+          //             </tr>
+          //           </thead>
 
-                  </table>
-                </div>
-              )
-            }
-            if(data.showPhanel){
-              let domOptions = {tag:'div',text:'vuex插件对无elementUi状态下的处理待优化哦~，敬请期待',opts:{
-                style: {
-                  position : "fixed",
-                  bottom : "500px",
-                  left : `50%`,
-                  transform: 'translateX(-50%)',
-                  cursor : "pointer",
-                  zIndex: 99,
-                  color: 'rgb(51, 136, 255)'
-                },
-                class : 'vuex_pannel_class',
-              },childrens:[]}
-              let listItem = creatDom(domOptions)
-              // mountToBody(listItem)
-              $mount('.vuex_debug_pannel_class',listItem)
-            }else {
-              remove_items('.vuex_debug_pannel_class')
-            }
-          }
+          //         </table>
+          //       </div>
+          //     )
+          //   }
+          //   if(data.showPhanel){
+          //     let domOptions = {tag:'div',text:'vuex插件对无elementUi状态下的处理待优化哦~，敬请期待',opts:{
+          //       style: {
+          //         position : "fixed",
+          //         bottom : "500px",
+          //         left : `50%`,
+          //         transform: 'translateX(-50%)',
+          //         cursor : "pointer",
+          //         zIndex: 99,
+          //         color: 'rgb(51, 136, 255)'
+          //       },
+          //       class : 'vuex_pannel_class',
+          //     },childrens:[]}
+          //     let listItem = creatDom(domOptions)
+          //     // mountToBody(listItem)
+          //     $mount('.vuex_debug_pannel_class',listItem)
+          //   }else {
+          //     remove_items('.vuex_debug_pannel_class')
+          //   }
+          // }
         }
         function mountToBody(dom){
           var bo = document.body; //获取body对象.
@@ -277,13 +291,20 @@ function pluginFn(options){
             h = typeCheck('Function')(store._vm.$createElement) ? store._vm.$createElement : () => {
                 console.log('未获取到$createElement');
             }
+            let preState = JSON.parse(JSON.stringify(store.state));
             initVuexDebugPlugin()
             store.subscribe((mutations,state) => {
-                if(sourceMap[mutations.type]){
-                targetList.push({
-                    type: mutations.type,
-                    ...(sourceMap[mutations.type])
-                })
+              let [moduleName, type] = mutations.type.split('/');
+                if(sourceMap[type]){
+                  if(moduleName === sourceMap[type].moduleName || sourceMap[type].moduleName === '*'){
+                    let changeKeys = compareObj(preState,state,2);
+                    console.log(changeKeys);
+                    targetList.push({
+                        type,
+                        ...(sourceMap[type])
+                    })
+                  }
+                  
                 }
                 // console.log('=========',mutations,state);
             })

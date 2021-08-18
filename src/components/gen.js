@@ -202,7 +202,6 @@ function generateButtonGroupComponent(opt, formData = {}, vm) {
 function generateRadioComponent(h, opt, formData = {}, vm) {
        
     let {key,props = {}, style = {} , events = [],children = [],slot} = opt;
-    debugger
     return h('el-radio', {
         props: {
             value: key? formData[key] : false,

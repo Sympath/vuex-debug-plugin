@@ -87,3 +87,44 @@ export function getVal(obj,str) {
     result: obj
   }
 } 
+
+export function compareObj(ori,target,deep) {
+  let changeKeys = [];
+  _compareObj(ori,target,'',deep)
+  function _compareObj(ori,target,fatherKey = '',deep = 999) {
+    if(deep == 0) return ;
+    else deep--;
+    eachObj(ori,(key,val)=>{
+      let type = typeof val;
+      // 前有后有
+      if(target.hasOwnProperty(key)){
+        // 类型不一致 key改变了
+        if(typeof target[key] === type){
+          // 引用类型 字符串化进行比较
+          if(type == 'object'){
+            if(deep) {
+               _compareObj(val,target[key],key,deep)
+            }else if(JSON.stringify(val) !== JSON.stringify(target[key])) {
+              changeKeys.push(fatherKey+'.'+key)
+            }
+          }
+          // 基本类型 字符串化进行比较
+          else {
+            
+            if (val === target[key]) {
+              
+            }else {
+              changeKeys.push(fatherKey+'.'+key)
+            }
+          }
+        }else {
+          changeKeys.push(fatherKey+'.'+key)
+        }
+      }else {
+        console.log(`此type对应操作删除了${key}属性`);
+        changeKeys.push(key)
+      }
+    })
+  }
+  return changeKeys
+}
