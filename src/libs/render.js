@@ -1,5 +1,7 @@
 import tableRender from "../components/we-table-dynamic";
 import { creatDom, mountToBody, setStyle } from "./dom";
+import { elDialogDrag } from "./drag";
+import { genDropDown } from "./gen";
 import { data } from "./import";
 
 
@@ -12,20 +14,57 @@ export function renderVuexDebugPlugin(_Vue,_hasElementUI) {
     Vue = _Vue;
     hasElementUI = _hasElementUI;
     renderChooseBtn()
+    const screenWidth = document.body.clientWidth // body当前宽度
+    const screenHeight = document.documentElement.clientHeight // 可见区域高度(应为body高度，可某些环境下无法获取)
+    let msgboxWidth = 1000;
+    let msgboxHeight = 500;
+    let left = (screenWidth - msgboxWidth) / 2;
+    let top = (screenHeight - msgboxHeight) / 2;
+    let customClass = 'vuex-msgbox';
+    let boxClass = 'el-message-box';
     setStyle({
-        'vuex-msgbox': {
-            width: '1000px!important'
+        [`${customClass}`]: {
+            width: `${msgboxWidth}px!important`,
+            height: `${msgboxHeight}px!important;`,
+            position: 'absolute',
+            left: `${left}px`,
+            top: `${top}px`,
+            // bottom: '0',
+            // right: '0',
+            // margin: 'auto'
         },
-        'vuex-msgbox .el-col-12':{
+        [`${customClass} .${boxClass}__message`]: {
+          position: 'relative'
+        },
+        [`${customClass} .more`]: {
+          position: 'absolute',
+          right: 0,
+          [`z-index`]: '1'
+        },
+        // 关闭弹窗按钮样式
+        [`${customClass} .${boxClass}__btns.is-overflow`] : {
+          position:'absolute',
+          'text-align': 'center',
+          bottom:'0',
+          right: 0,
+          background: 'fff',
+          border: 'none',
+          "box-shadow": 'none'
+        },
+        [`${customClass} .${boxClass}__content`]: {
+          overflow: 'srcoll',
+          height: `${msgboxHeight - 48}px`
+        },
+        [`${customClass} .el-col-12`]:{
             height: '40px'
         },
-        'vuex-msgbox .vuex-link': {
+        [`${customClass} .vuex-link`]: {
             color: '#ccc'
         },
-        'vuex-msgbox .vuex-link span.actived': {
+        [`${customClass} .vuex-link span.actived`]: {
             color: '#409EFF'
         },
-        'vuex-msgbox .vuex-link.actived': {
+        [`${customClass} .vuex-link.actived`]: {
             color: '#409EFF'
         }
 
@@ -36,7 +75,7 @@ export function renderVuexDebugPlugin(_Vue,_hasElementUI) {
 function renderChooseBtn(){
     if(data.notFirstRenderChooseBtn) return;
     data.notFirstRenderChooseBtn = true;
-    let domOptions = {tag:'div',text:'vuex',opts:{
+    let domOptions = {tag:'div',text:'$vuex',opts:{
       style: {
         position : "fixed",
         bottom : "10px",
@@ -151,23 +190,23 @@ function renderChooseBtn(){
                       prop: 'annotation',
                       width: '200'
                     },
-                    {
-                      label: '操作',
-                      prop: 'api',
-                      width: '200',
-                      renderCell: (h, {row,column,$index}) => {
-                        return h('el-link',{
-                          props: {
-                            href: row.apiDocsLink,
-                            // icon: 'el-icon-view',
-                            underline: false
-                          },
-                          attrs: {
-                            target: "_blank"
-                          }
-                        },'查看接口文档')
-                      }
-                    },
+                    // {
+                    //   label: '操作',
+                    //   prop: 'api',
+                    //   width: '200',
+                    //   renderCell: (h, {row,column,$index}) => {
+                    //     return h('el-link',{
+                    //       props: {
+                    //         href: row.apiDocsLink,
+                    //         // icon: 'el-icon-view',
+                    //         underline: false
+                    //       },
+                    //       attrs: {
+                    //         target: "_blank"
+                    //       }
+                    //     },'查看接口文档')
+                    //   }
+                    // },
                 ]
               function generateTableComponent(columns,list){
                 return tableRender(h, {
@@ -176,27 +215,30 @@ function renderChooseBtn(){
                       list
                     })   
               }
-              function generateLayout(header,content) {
+              function generateLayout(header,content, layoutFooter,layoutPlugin) {
                 return h('div', {},[
-                    h('el-header', {style: {
-                        paddingLeft: '60px'
-                    }},[header]),
+                    // layoutPlugin,
+                    // h('el-aside', {
+                    //   width: '200px'
+                    // },[layoutAsider]),
                     h('el-main', {},[content])
+
                 ])
             }
+            function generateLayoutPlugin() {
+              return h('el-button', {
+                class: 'more',
+              },['重置'])
+              return genDropDown(h, ['重置'], function (item) {
+                console.log(item);
+              });
+          }
             function generateLayoutContent() {
               return generateTableComponent(tableColumns,data.targetList);
             }
             function generateLayoutHeader() {
                 // 顶部功能按钮
-                let children = [h('el-button',{
-                    on: {
-                        click(){
-                            notice('重置成功')
-                            _data.setRouteVm(data.routeVmList.length -1);
-                        }
-                    }
-                },'待完成功能项')];
+                let children = [];
                 let content = children.map(c => h(
                     'el-col',{
                         props: {
@@ -209,8 +251,31 @@ function renderChooseBtn(){
                     gutter: 20
                 },content)
             }
+            function generateLayoutFooter() {
+              // 顶部功能按钮
+              let children = [h('el-button',{
+                on: {
+                    click(){
+                        
+                    }
+                }
+            },'待完成功能项')];
+              let content = children.map(c => h(
+                  'el-col',{
+                      props: {
+                          span: 6
+                      }
+                  },
+                  [c]
+              ))
+              return h('el-row', {
+                  gutter: 20
+              },content)
+          }
             let layoutHeader = generateLayoutHeader();
             let layoutContent = generateLayoutContent();
+            let layoutFooter = generateLayoutFooter();
+            let layoutPlugin = generateLayoutPlugin();
             // generateTabs({
             //     props: {
             //         // type: 'border-card',
@@ -222,7 +287,7 @@ function renderChooseBtn(){
             //     },
             //     children
             // },data,'currentRouteKey')
-            let message = generateLayout(layoutHeader,layoutContent);
+            let message = generateLayout(layoutHeader,layoutContent, layoutFooter, layoutPlugin);
               // let message = 
               Vue.prototype.$msgbox({ 
                 title: 'Vuex数据映射列表',
@@ -231,6 +296,7 @@ function renderChooseBtn(){
                 showCancelButton: false,
                 showConfirmButton: true,
                 showClose: false,
+                center: true,
                 confirmButtonText: '关闭面板',
                 beforeClose: (action, instance, done) => {
                   done()
@@ -242,6 +308,9 @@ function renderChooseBtn(){
       
                 }
               },()=>{})
+              setTimeout(() => {
+                elDialogDrag('vuex-msgbox')
+              }, 1000);
             }
             // function _renderChoosePhanelForNormal() {
             //   // 渲染无elementUi状态下的插件面板 w-todo

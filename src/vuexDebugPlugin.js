@@ -26,14 +26,13 @@ function pluginFn(options){
               if(noNeedResolve(moduleName, type)){
                 return;
               }
-
+              let module = allModules[moduleName]._rawModule;
               // 缓存机制
-              let cacheItems = mapCache(moduleName, type);
+              let cacheItems = mapCache(moduleName, type, module);
               if(cacheItems && typeCheck('Array')(cacheItems)){
                 data.targetList.push(...cacheItems);
                 return;
               }
-              let module = allModules[moduleName]._rawModule;
               let rootService = data.service[moduleName] ?  Object.assign(data.service[moduleName], data.service.common) : data.service.common;
               let states = getStateByType(type,module);
               let actions = getActionByType(type,module,rootService);

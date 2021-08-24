@@ -1,4 +1,4 @@
-import { callFn, deWeight, eachObj, getVal, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
+import { callFn, deWeight, eachObj, getStateByType, getVal, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
 
 
 export let data = {
@@ -54,12 +54,29 @@ function importPlugin(Vue,_options){
  * @param {*} moduleName type对应的模块
  * @param {*} type type名称
  */
-export function noNeedResolve(moduleName, type) {
+export function noNeedResolve(moduleName, type, module) {
   let noNeedResolve = false; // 默认需要处理
   // 判断下是不是用户决定不需要处理的模块
   let {ignoreModules = []} = data.options;
   if(ignoreModules.includes(moduleName)){
     noNeedResolve = true;
+  }
+  if(moduleName === 'dictionary'){
+    if ( !data.dictionaryMap) {
+      data.dictionaryMap = {
+        showType: '字典模块 | dictionary',
+        type: '',
+        moduleName,
+        getter: '',
+        action: 'actionMultiDictionary',
+        api: 'apiFetchMultiDictionary | /common/dict/items/multi-code',
+        index: 0
+      };
+      data.targetList.push(data.dictionaryMap)
+    }
+    data.dictionaryMap.type += `${data.dictionaryMap.index} ${type};`
+    // let states = getStateByType(type,module);
+    // data.dictionaryMap.getter += `${data.dictionaryMap.index} ${states.join(',')};`
   }
   let hased = data.targetList.some(item=>{
     if((item.moduleName === moduleName ) && item.type === type){
