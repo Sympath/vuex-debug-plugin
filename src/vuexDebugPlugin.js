@@ -33,7 +33,7 @@ function pluginFn(options){
                 data.targetList.push(...cacheItems);
                 return;
               }
-              let rootService = data.service[moduleName] ?  Object.assign(data.service[moduleName], data.service.common) : data.service.common;
+              let rootService = data.serviceMap[moduleName] ?  Object.assign(data.serviceMap[moduleName], data.serviceMap.common) : data.serviceMap.common;
               let states = getStateByType(type,module);
               let actions = getActionByType(type,module,rootService);
               // 根据收集到的信息组装表格数据

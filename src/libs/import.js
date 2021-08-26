@@ -1,8 +1,9 @@
-import { callFn, deWeight, eachObj, getStateByType, getVal, mergeArr, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
+import { callFn, deWeight, eachObj, getApiByService, getStateByType, getVal, mergeArr, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
 import cachePlugin from "../plugins/cachePlugin";
 // import dragPlugin from "../plugins/dragPlugin";
 import moduleHandlerPlugin from "../plugins/moduleHandlerPlugin";
 import searchPlugin from "../plugins/searchPlugin";
+import searchServicePlugin from "../plugins/searchServicePlugin";
 
 
 export let data = {
@@ -11,10 +12,73 @@ export let data = {
   errMsg: '组件列表为空，糟糕，大概出啥子问题了，快去提issue吧~', // 错误提示信息
   showPhanel: false,// 控制是否显示面板
   notFirstRenderChooseBtn: false,
-  isDev: /qa.*test/.test(location.host),
-  service: {},
   targetList: [], // 当前命中列表 用于渲染
   sourceList: [],// 数据源列表 用于缓存
+  serviceList: [], // 存储项目service中方法和接口的对应关系
+  tableColumnsMap: {
+    1: [
+      {
+        label: 'commit时的type参数',
+        prop: 'showType',
+        width: '200'
+      },
+      {
+        label: 'Getter（对应的属性）',
+        prop: 'getter',
+        width: '200'
+      },
+      {
+        label: 'Action',
+        prop: 'action',
+        width: '200'
+      },
+      {
+        label: 'API（接口地址）',
+        prop: 'api',
+        width: '200'
+      },
+      {
+        label: '备注信息',
+        prop: 'annotation',
+        width: '200'
+      },
+      // {
+      //   label: '操作',
+      //   prop: 'api',
+      //   width: '200',
+      //   renderCell: (h, {row,column,$index}) => {
+      //     return h('el-link',{
+      //       props: {
+      //         href: row.apiDocsLink,
+      //         // icon: 'el-icon-view',
+      //         underline: false
+      //       },
+      //       attrs: {
+      //         target: "_blank"
+      //       }
+      //     },'查看接口文档')
+      //   }
+      // },
+    ],
+    2: [
+        {
+          label: '模块',
+          prop: 'moduleName',
+          width: '200'
+        },
+        {
+          label: '方法名',
+          prop: 'serviceName',
+          width: '200'
+        },
+        {
+          label: 'API（接口地址）',
+          prop: 'api',
+          width: '200'
+        }
+    ]
+  },
+  tableType: 1,
   pluginMap: {
     dataPlugins: [], // 数据插件 会在当前渲染列表新增数据时执行
     layoutPlugins: [], // 布局插件，会渲染返回的dom
@@ -26,10 +90,21 @@ window._vuexData = data;
 // 装载插件 入口函数 main
 function importPlugin(Vue,_options){  
   data.options = _options;
-  data.service = data.options.service;
   h = data.h;
+  eachObj(data.options, (key, val) => {
+    Object.defineProperty(data, key, {
+      get(){
+        return data.options[key]
+      },
+      set(newVal){
+        data.options[key] = newVal;
+      }
+    })
+  })
+  initService(data.serviceMap);
   addPlugin(moduleHandlerPlugin)
   addPlugin(cachePlugin)
+  addPlugin(searchServicePlugin)
   addPlugin(searchPlugin)
   // addPlugin(dragPlugin)
   observe();
@@ -61,6 +136,12 @@ function importPlugin(Vue,_options){
   }
   Vue.mixin(vuexDebugPluginMixin)
 }
+Object.defineProperty(data, 'tableColumns', {
+  get(){
+    return data.tableColumnsMap[data.tableType];
+  }
+})
+
 /**
  * 不需要处理的type
  * @param {*} moduleName type对应的模块
@@ -87,6 +168,27 @@ export function noNeedResolve(moduleName, type, module) {
   
 }
 
+function initService(serviceMap) {
+  // let vuexPluginServiceData = JSON.parse(localStorage.getItem('vuexPluginServiceData')) || [];
+  // // 有缓存走缓存
+  // if(vuexPluginServiceData.length > 0){
+  //   data.serviceList = vuexPluginServiceData;
+  //   return
+  // }
+  // 没缓存进行解析
+  eachObj(serviceMap, (moduleName, moduleServiceObj) => {
+    eachObj(moduleServiceObj, (serviceName , serviceFn) => {
+      let [ _ , api] = getApiByService(serviceMap[moduleName],serviceName).replace(/\s/g, '').split('|');
+      data.serviceList.push({
+        serviceName,
+        api,
+        moduleName
+      })
+    })
+  })
+  localStorage.setItem('vuexPluginServiceData', JSON.stringify(data.serviceList))
+  
+}
 
 function observe() {
   let oldArrayProtoMethods = Array.prototype;
@@ -104,7 +206,7 @@ function observe() {
       if(i <= index) Promise.resolve(new Error('next() called multiple times'));
       fn = data.pluginMap.dataPlugins[i];
       if(i === data.pluginMap.dataPlugins.length) fn = ()=> {console.log('所有插件执行完毕');return true};
-      debugger
+      // debugger
       let pluginReturn = fn(dispatch.bind(null, i + 1), newObj);
       if(pluginReturn){
         noNeedPlush = true;

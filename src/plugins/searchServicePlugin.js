@@ -1,21 +1,17 @@
 import { eachObj, mergeArr } from "../../util";
 
-export default function searchPlugin(data) {
-    data.keyWord = '';
+export default function searchServicePlugin(data) {
+    data.serviceKeyWord = '';
     function filterListByKeyWord( keyword , keywordType) {
-      return data.sourceList.filter(source => {
+      return data.serviceList.filter(source => {
         let {
-          type,
-          getter,
-          action,
-          api
+          serviceName,
+          api,
+          moduleName
         } = source;
         let isChoosed = false;
         eachObj({
-          type,
-          getter,
-          type,
-          action,
+          serviceName,
           api
         }, (key , val) => {
           if(val.indexOf(keyword) > -1){
@@ -30,26 +26,27 @@ export default function searchPlugin(data) {
       type: '1',
       handler: (h, notice) => {
         setTimeout(() => {
-          var input = document.querySelector('#search');
+          var input = document.querySelector('#serviceSearch');
           input.addEventListener('input', function(e) {
-            data.keyWord = e.target.value;
+            data.serviceKeyWord = e.target.value;
           })
         }, 1000);
         return (
           <div data-v-01f94fbc="" class="el-input el-input--small el-input--suffix" style="width: 200px; position: relative;margin-left: 70px;">
-             <span style="position: absolute; left: -55px;top: 50%;transform: translateY(-50%);">vuex：</span> <input type="text" autocomplete="off" id="search" placeholder="请输入getter/type/action/api" class="el-input__inner"/>
+              <span style="position: absolute; left: -55px;top: 50%;transform: translateY(-50%);">service：</span><input type="text" autocomplete="off" id="serviceSearch" placeholder="请输入serviceName/api" class="el-input__inner"/>
               <span class="el-input__suffix">
                   <span class="el-input__suffix-inner">
                       <i
                         onClick={
                           ()=>{
-                            if (data.keyWord === '') {
+                            if (data.serviceKeyWord === '') {
                               notice('关键词不能为空');
                               return;
                             }
-                            let filterList = filterListByKeyWord( data.keyWord);
+                            let filterList = filterListByKeyWord( data.serviceKeyWord);
                             if(filterList.length > 0){
                               data.targetList.length = 0;
+                              data.tableType = 2;
                               mergeArr(data.targetList, filterList)
                               notice('搜索成功');
                             }else {

@@ -354,6 +354,43 @@ export function getStateByType(type,module) {
 }
 
 /**
+   * 根据serviceName获取接口地址
+   * @param {*} service service对象
+   * @param {*} serviceName service方法名
+   * @returns {
+ *  
+ * }
+ */
+export function getApiByService(service,serviceName) {
+    // data.service.auth.apiResetPassword
+    let api = `获取地址失败，请自行根据方法名查询`;
+    let serviceFnStr = "";
+    if(typeCheck('Function')(service[serviceName])){
+      serviceFnStr = service[serviceName].toString();
+      // serviceFnStr = serviceFnStr.replace(/{/g, '');
+      // serviceFnStr = serviceFnStr.replace(/}/g, '');
+      // 转为一行 正则默认是一行匹配，如果不是一行就会匹配失败
+      serviceFnStr = serviceFnStr.replace(/\s/g, '')
+      var regexpForApi = /(?<=\(['"]).*(?=\))/g; 
+      let results = serviceFnStr.match(regexpForApi)
+      if(typeCheck('Array')(results)){
+        if(results.length > 0){
+          api = results[0]
+          if(api.indexOf(','>-1)){
+            api = api.split(',')[0];
+          }
+        }
+      }else {
+        api =  `获取地址为空，请自行根据方法名查询`;
+      }
+    }else {
+      // console.error(`${serviceName}对应的不是一个函数`);
+      api = `对应的不是一个函数`
+    }
+    
+    return `${serviceName} | ${api.replace('\'', '')}` 
+}
+/**
 * 一个模块中，根据type获取action地址和其对应的api地址  
 * @param {*} type types中定义的常量值 
 * @param {*} module 模块对象
@@ -364,43 +401,7 @@ export function getStateByType(type,module) {
 * }
 */
 export function getActionByType(type,module, serviceByModule) {
-  /**
-   * 根据serviceName获取接口地址
-   * @param {*} service service对象
-   * @param {*} serviceName service方法名
-   * @returns {
-   *  
-   * }
-   */
-  function getApiByService(service,serviceName) {
-      // data.service.auth.apiResetPassword
-      let api = `获取地址失败，请自行根据方法名查询`;
-      let serviceFnStr = "";
-      if(typeCheck('Function')(service[serviceName])){
-        serviceFnStr = service[serviceName].toString();
-        // serviceFnStr = serviceFnStr.replace(/{/g, '');
-        // serviceFnStr = serviceFnStr.replace(/}/g, '');
-        // 转为一行 正则默认是一行匹配，如果不是一行就会匹配失败
-        serviceFnStr = serviceFnStr.replace(/\s/g, '')
-        var regexpForApi = /(?<=\(['"]).*(?=\))/g; 
-        let results = serviceFnStr.match(regexpForApi)
-        if(typeCheck('Array')(results)){
-          if(results.length > 0){
-            api = results[0]
-            if(api.indexOf(','>-1)){
-              api = api.split(',')[0];
-            }
-          }
-        }else {
-          api =  `获取地址为空，请自行根据方法名查询`;
-        }
-      }else {
-        // console.error(`${serviceName}对应的不是一个函数`);
-        api = `对应的不是一个函数`
-      }
-      
-      return `${serviceName} | ${api.replace('\'', '')}` 
-  }
+  
   /**
    * 判断action中是否有触发此types中定义的常量值
    * @param {*} actionFnStr action方法的字符串

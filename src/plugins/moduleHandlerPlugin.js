@@ -20,7 +20,7 @@ export default function moduleHandlerPlugin(data) {
         //   data.targetList.push(data.dictionaryMap)
         // }
         data.dictionaryMap.type += `${data.dictionaryMap.index} ${type};`
-        data.dictionaryMap.annotation = `触发字典为：${data.dictionaryMap.type}`
+        // data.dictionaryMap.annotation = `触发字典为：${data.dictionaryMap.type}`
         data.dictionaryMap.index++;
         // let states = getStateByType(type,module);
         // data.dictionaryMap.getter += `${data.dictionaryMap.index} ${states.join(',')};`
