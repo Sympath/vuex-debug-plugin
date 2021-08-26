@@ -14,6 +14,12 @@ function delDeep(obj){
     }
   })
 }
+// 保证数组的push参数只有一个对象
+export function mergeArr(ori = [],tar = []) {
+  tar.forEach(item=>{
+    ori.push(item)
+  })
+}
 
 /**
  * 遍历对象 直接获取key value  （不会遍历原型链  forin会）
@@ -73,6 +79,10 @@ export function tf(str){
 // 数组对象去重
 export function deWeight (arr,key) {
   let map = new Map();
+  if (!typeCheck('Array')(arr)) {
+    console.error(`${arr}不是数组`);
+    return []
+  }
   arr.forEach((item,index) => {
     if (!map.has(item[key])) {
       map.set(item[key], item);
@@ -382,7 +392,6 @@ export function getActionByType(type,module, serviceByModule) {
             }
           }
         }else {
-          debugger
           api =  `获取地址为空，请自行根据方法名查询`;
         }
       }else {

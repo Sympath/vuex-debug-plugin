@@ -1,3 +1,4 @@
+
 export function elDialogDrag(customClass) {
     const dialogHeaderEl = document.querySelector(`.${customClass} .el-message-box__header`)
     const dragDom = document.querySelector(`.${customClass}.el-message-box`)
@@ -74,4 +75,14 @@ export function elDialogDrag(customClass) {
         }
         return false
     }
+}
+// 实现message-box的拖拽
+export default function dragPlugin(data){
+   return {
+    type: '1',
+     handler(h){
+        elDialogDrag('vuex-msgbox')
+        return h('span','')
+    }
+   } 
 }

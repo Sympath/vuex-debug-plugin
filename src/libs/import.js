@@ -1,4 +1,8 @@
-import { callFn, deWeight, eachObj, getStateByType, getVal, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
+import { callFn, deWeight, eachObj, getStateByType, getVal, mergeArr, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
+import cachePlugin from "../plugins/cachePlugin";
+// import dragPlugin from "../plugins/dragPlugin";
+import moduleHandlerPlugin from "../plugins/moduleHandlerPlugin";
+import searchPlugin from "../plugins/searchPlugin";
 
 
 export let data = {
@@ -11,16 +15,24 @@ export let data = {
   service: {},
   targetList: [], // 当前命中列表 用于渲染
   sourceList: [],// 数据源列表 用于缓存
-  plugins: [], // 实现插件机制
-  options: {} // ignoreModules  不需要处理模块
+  pluginMap: {
+    dataPlugins: [], // 数据插件 会在当前渲染列表新增数据时执行
+    layoutPlugins: [], // 布局插件，会渲染返回的dom
+  } , // 实现插件机制
+  options: {}, // ignoreModules  不需要处理模块
 }
+let h; // 用于存储$createElement函数
 window._vuexData = data;
 // 装载插件 入口函数 main
 function importPlugin(Vue,_options){  
   data.options = _options;
   data.service = data.options.service;
-  observe();
+  h = data.h;
+  addPlugin(moduleHandlerPlugin)
   addPlugin(cachePlugin)
+  addPlugin(searchPlugin)
+  // addPlugin(dragPlugin)
+  observe();
   let vuexDebugPluginMixin = {
     beforeRouteEnter (to, from, next) {
       next(function (vm) {
@@ -71,39 +83,37 @@ export function noNeedResolve(moduleName, type, module) {
   if (hased) {
     return true;
   }
-  // 字典模块特殊处理
-  if(moduleName === 'dictionary'){
-    if ( !data.dictionaryMap) {
-      data.dictionaryMap = {
-        showType: '字典模块 | dictionary',
-        type: '',
-        moduleName,
-        getter: '',
-        action: 'actionMultiDictionary',
-        api: 'apiFetchMultiDictionary | /common/dict/items/multi-code',
-        index: 0,
-        annotation: ''
-      };
-      data.targetList.push(data.dictionaryMap)
-    }
-    data.dictionaryMap.type += `${data.dictionaryMap.index} ${type};`
-    data.dictionaryMap.annotation = `触发字典为：${data.dictionaryMap.type}`
-    data.dictionaryMap.index++;
-    return true
-    // let states = getStateByType(type,module);
-    // data.dictionaryMap.getter += `${data.dictionaryMap.index} ${states.join(',')};`
-  }
+  
   
 }
+
 
 function observe() {
   let oldArrayProtoMethods = Array.prototype;
   // 进行一层方法劫持 在新数据增加时进行缓存在localstorage的操作
-  data.targetList.push = function (...args){
-    let r = oldArrayProtoMethods.push.apply(this,args)
-    data.plugins.forEach(
-      plugin => plugin(...args)
-    )
+  data.targetList.push = function (newObj){
+    if (!typeCheck('Array')(data.pluginMap.dataPlugins)) {
+      console.error(`data.pluginMap.dataPlugins不是数组`);
+      data.pluginMap.dataPlugins = []
+    }
+    let noNeedPlush = false;
+    let index = -1;
+    dispatch(0)
+    function dispatch(i) {
+      let fn = null;
+      if(i <= index) Promise.resolve(new Error('next() called multiple times'));
+      fn = data.pluginMap.dataPlugins[i];
+      if(i === data.pluginMap.dataPlugins.length) fn = ()=> {console.log('所有插件执行完毕');return true};
+      debugger
+      let pluginReturn = fn(dispatch.bind(null, i + 1), newObj);
+      if(pluginReturn){
+        noNeedPlush = true;
+      }
+    }
+    // 如果有一个插件决定不push 则不再push
+    if(!noNeedPlush){
+      let r = oldArrayProtoMethods.push.apply(this,[newObj])
+    }
   };
 }
 /**
@@ -114,39 +124,17 @@ function addPlugin(pluginWrap =() => {}) {
   if (typeCheck('Function')(pluginWrap)) {
     let plugin = pluginWrap(data);
     if (typeCheck('Function')(plugin)) {
-      data.plugins.push(plugin);
+      data.pluginMap.dataPlugins.push(plugin);
+    }else if (typeCheck('Object')(plugin) && plugin.type === '1') {
+      if (typeCheck('Function')(plugin.handler)) {
+        data.pluginMap.layoutPlugins.push(plugin.handler)
+      }
+   
     }else {
-      console.error('插件需返回一个函数');
+      console.error('未支持的插件类型');
     }
   }
 }
-// 实现插件从而实现缓存机制
-function cachePlugin(data) {
-  // 先看有没有缓存
-  let localStorageDatas = getStoreVuexPluginData();
-  data.sourceList.push(...localStorageDatas);
-  return function (...args) {
-    if(args[0].isCache){
-
-    }else {
-      // 加上缓存标识
-      args.forEach(item=>{
-        item.isCache = true;
-      })
-      // 存入缓存对象中
-      data.sourceList.push(...args)
-      setStoreVuexPluginData(data.sourceList)
-    }
-  }
-}
-
-export function setStoreVuexPluginData(datas = []) {
-  localStorage.setItem('vuexPluginData',JSON.stringify(datas));
-}
-export function getStoreVuexPluginData() {
-  return JSON.parse(localStorage.getItem('vuexPluginData')) || [];
-}
-
 
 export function mapCache(moduleName,type) {
   let cacheItems = data.sourceList.filter(item=>{

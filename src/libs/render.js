@@ -1,3 +1,4 @@
+import { eachObj, mergeArr } from "../../util";
 import tableRender from "../components/we-table-dynamic";
 import { creatDom, mountToBody, setStyle } from "./dom";
 import { elDialogDrag } from "./drag";
@@ -9,6 +10,8 @@ let Vue;
 let h; // 用于存储$createElement函数
 let hasElementUI; // 用户传递的配置项
 let delay = 1000;
+
+
 // 初始化时渲染插件所要渲染的组件  main入口函数
 export function renderVuexDebugPlugin(_Vue,_hasElementUI) {
     Vue = _Vue;
@@ -34,12 +37,15 @@ export function renderVuexDebugPlugin(_Vue,_hasElementUI) {
             // margin: 'auto'
         },
         [`${customClass} .${boxClass}__message`]: {
-          position: 'relative'
+          position: 'relative',
+          [`margin-top`]: '25px'
         },
         [`${customClass} .more`]: {
           position: 'absolute',
           right: 0,
-          [`z-index`]: '1'
+          [`z-index`]: '1',
+          top: '-44px',
+          // top: '-25px',
         },
         // 关闭弹窗按钮样式
         [`${customClass} .${boxClass}__btns.is-overflow`] : {
@@ -217,7 +223,7 @@ function renderChooseBtn(){
               }
               function generateLayout(header,content, layoutFooter,layoutPlugin) {
                 return h('div', {},[
-                    // layoutPlugin,
+                    layoutPlugin,
                     // h('el-aside', {
                     //   width: '200px'
                     // },[layoutAsider]),
@@ -226,12 +232,11 @@ function renderChooseBtn(){
                 ])
             }
             function generateLayoutPlugin() {
-              return h('el-button', {
-                class: 'more',
-              },['重置'])
-              return genDropDown(h, ['重置'], function (item) {
-                console.log(item);
-              });
+              let pluginDoms = data.pluginMap.layoutPlugins.map(plugin=>plugin(h,notice))
+
+              return h('div',{
+                class: 'more'
+              }, pluginDoms)
           }
             function generateLayoutContent() {
               return generateTableComponent(tableColumns,data.targetList);
@@ -309,7 +314,7 @@ function renderChooseBtn(){
                 }
               },()=>{})
               setTimeout(() => {
-                elDialogDrag('vuex-msgbox')
+                elDialogDrag('vuex-msgbox');
               }, 1000);
             }
             // function _renderChoosePhanelForNormal() {
@@ -352,3 +357,15 @@ function renderChooseBtn(){
             //   }
             // }
           }
+
+
+
+export function notice(msg,type = 'success') {
+  if(hasElementUI) 
+      {
+          Vue.prototype.$message({message:msg,type})
+  }
+  else {
+      alert(msg)
+  }
+}

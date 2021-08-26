@@ -58,6 +58,8 @@ let sourceMap = {
         annotation: '这是医院配置信息获取或设置的接口' // 备注信息
     }
 }
+
+
 export default sourceMap;
 ```
 ### 待优化
@@ -68,3 +70,10 @@ export default sourceMap;
 - 渲染无elementUi状态下的插件面板
 - 支持模块化的格式
 - 支持模糊查询条件过滤（如：【备注】中含有【过滤】的数据才展示）
+
+
+- 待整理插件机制
+
+
+### 注意
+1. 一定不要用data.targetList的push方法去一次push多个元素，如果有这种需要 可以使用util中的mergeArr
