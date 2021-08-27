@@ -18,7 +18,10 @@ export default function searchPlugin(data) {
           action,
           api
         }, (key , val) => {
-          if(val.indexOf(keyword) > -1){
+          if (keyword === 'all') {
+            isChoosed = true;
+          }
+          if((val || '').indexOf(keyword) > -1){
             isChoosed = true;
           }
         })

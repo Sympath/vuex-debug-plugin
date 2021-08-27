@@ -194,6 +194,12 @@ function renderChoosePhanel(){
       }, pluginDoms)
   }
     function generateLayoutContent() {
+      return (
+        <el-tabs tab-position="left">
+          <el-tab-pane label="service">{generateTableComponent(data.tableColumnsMap[2],data.serviceTargetList)}</el-tab-pane>
+          <el-tab-pane label="vuex">{generateTableComponent(data.tableColumnsMap[1],data.targetList)}</el-tab-pane>
+        </el-tabs>
+      )
       return generateTableComponent(tableColumns,data.targetList);
     }
     function generateLayoutHeader() {

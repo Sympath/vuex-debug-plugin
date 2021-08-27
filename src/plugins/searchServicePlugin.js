@@ -14,7 +14,10 @@ export default function searchServicePlugin(data) {
           serviceName,
           api
         }, (key , val) => {
-          if(val.indexOf(keyword) > -1){
+          if (keyword === 'all') {
+            isChoosed = true;
+          }
+          if((val || '').indexOf(keyword) > -1){
             isChoosed = true;
           }
         })
@@ -45,9 +48,9 @@ export default function searchServicePlugin(data) {
                             }
                             let filterList = filterListByKeyWord( data.serviceKeyWord);
                             if(filterList.length > 0){
-                              data.targetList.length = 0;
+                              data.serviceTargetList.length = 0;
                               data.tableType = 2;
-                              mergeArr(data.targetList, filterList)
+                              mergeArr(data.serviceTargetList, filterList)
                               notice('搜索成功');
                             }else {
                               notice('搜索结果为空');

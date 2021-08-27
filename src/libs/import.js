@@ -15,6 +15,7 @@ export let data = {
   targetList: [], // 当前命中列表 用于渲染
   sourceList: [],// 数据源列表 用于缓存
   serviceList: [], // 存储项目service中方法和接口的对应关系
+  serviceTargetList: [], // 存储项目service对应的渲染数据列表
   tableColumnsMap: {
     1: [
       {
