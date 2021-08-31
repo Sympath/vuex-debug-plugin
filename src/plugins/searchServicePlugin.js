@@ -27,6 +27,7 @@ export default function searchServicePlugin(data) {
     }
     return {
       type: '1',
+      key: 'service-search',
       handler: (h, notice) => {
         setTimeout(() => {
           var input = document.querySelector('#serviceSearch');

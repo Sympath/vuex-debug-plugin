@@ -31,6 +31,7 @@ export default function searchPlugin(data) {
     }
     return {
       type: '1',
+      key: 'vuex-search',
       handler: (h, notice) => {
         setTimeout(() => {
           var input = document.querySelector('#search');

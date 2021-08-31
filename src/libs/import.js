@@ -1,5 +1,6 @@
 import { callFn, deWeight, eachObj, getApiByService, getStateByType, getVal, mergeArr, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
 import cachePlugin from "../plugins/cachePlugin";
+import cacheApplyPlugin from "../plugins/cacheServicePlugin";
 // import dragPlugin from "../plugins/dragPlugin";
 import moduleHandlerPlugin from "../plugins/moduleHandlerPlugin";
 import searchPlugin from "../plugins/searchPlugin";
@@ -103,10 +104,11 @@ function importPlugin(Vue,_options){
     })
   })
   initService(data.serviceMap);
-  addPlugin(moduleHandlerPlugin)
-  addPlugin(cachePlugin)
-  addPlugin(searchServicePlugin)
-  addPlugin(searchPlugin)
+  addPlugin('cache-apply-plugin',cacheApplyPlugin)
+  addPlugin('module-handler-plugin',moduleHandlerPlugin)
+  addPlugin('cache-plugin',cachePlugin)
+  addPlugin('search-service-plugin',searchServicePlugin)
+  addPlugin('search-plugin',searchPlugin)
   // addPlugin(dragPlugin)
   observe();
   let vuexDebugPluginMixin = {
@@ -170,12 +172,13 @@ export function noNeedResolve(moduleName, type, module) {
 }
 
 function initService(serviceMap) {
-  // let vuexPluginServiceData = JSON.parse(localStorage.getItem('vuexPluginServiceData')) || [];
-  // // 有缓存走缓存
-  // if(vuexPluginServiceData.length > 0){
-  //   data.serviceList = vuexPluginServiceData;
-  //   return
-  // }
+  let vuexPluginServiceData = JSON.parse(localStorage.getItem('vuexPluginServiceData')) || [];
+  
+  // // 如果开启缓存的话，则走缓存数据
+  if(data.applyCache && vuexPluginServiceData.length > 0){
+    data.serviceList = vuexPluginServiceData;
+    return
+  }
   // 没缓存进行解析
   eachObj(serviceMap, (moduleName, moduleServiceObj) => {
     eachObj(moduleServiceObj, (serviceName , serviceFn) => {
@@ -223,14 +226,23 @@ function observe() {
  * 插件机制
  * @param {*} pluginWrap 插件默认为一个返回函数的函数 外层函数会默认执行 并在执行时被传递data；
  */
-function addPlugin(pluginWrap =() => {}) {
+function addPlugin(pluginName,pluginWrap =() => {}) {
   if (typeCheck('Function')(pluginWrap)) {
     let plugin = pluginWrap(data);
     if (typeCheck('Function')(plugin)) {
       data.pluginMap.dataPlugins.push(plugin);
+      // 记录插件名称
+      data.pluginMap[pluginName] = {
+        type: 0,
+        plugin
+      }
     }else if (typeCheck('Object')(plugin) && plugin.type === '1') {
       if (typeCheck('Function')(plugin.handler)) {
         data.pluginMap.layoutPlugins.push(plugin.handler)
+        data.pluginMap[pluginName] = {
+          type: 1,
+          plugin: plugin.handler
+        }
       }
    
     }else {

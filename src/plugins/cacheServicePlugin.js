@@ -1,0 +1,37 @@
+import { eachObj, mergeArr } from "../../util";
+
+export default function cacheApplyPlugin(data) {
+    data.applyCache = false;
+    return {
+      type: '1',
+      handler: (h, notice) => {
+        setTimeout(() => {
+          var switchDom = document.querySelector('#cache');
+          switchDom.addEventListener('click', function(e) {
+            let oldStatus = data.applyCache
+            let newStatus = !oldStatus;
+            data.applyCache = newStatus;
+            let noticeInfo = '';
+            if(newStatus){
+              switchDom.classList.add('is-checked')
+              noticeInfo = '启用缓存';
+            }else {
+              switchDom.classList.remove('is-checked')
+              noticeInfo = '禁用缓存';
+            }
+            notice(noticeInfo)
+          })
+        }, 1000);
+        return (
+          <div data-v-01f94fbc="" id="cache" role="switch" class="el-switch el-switch--center el-switch--small">
+            <input type="checkbox" name="" true-value="true" class="el-switch__input"/>
+            <span class="el-switch__label el-switch__label--left"><span aria-hidden="true">是否启用缓存：</span></span>
+            <span class="el-switch__core" style="width: 40px;"></span>
+          </div>
+         
+        )
+      }
+    }
+  }
+
+

@@ -39,11 +39,13 @@ export function renderVuexDebugPlugin(_Vue,_hasElementUI) {
           [`margin-top`]: '25px'
         },
         [`${customClass} .more`]: {
-          position: 'absolute',
-          right: 0,
-          [`z-index`]: '1',
-          top: '-44px',
+          // position: 'absolute',
+          // right: 0,
+          // [`z-index`]: '1',
+          // top: '-44px',
           // top: '-25px',
+          [`margin-bottom`]: '20px',
+          float: 'right'
         },
         // 关闭弹窗按钮样式
         [`${customClass} .${boxClass}__btns.is-overflow`] : {
@@ -168,7 +170,6 @@ function renderChoosePhanel(){
             style: "width: 1000px;"
         }
         // | type（commit时的type参数） | Getter（对应的属性） | API（接口地址） | APIDOCs（接口文档地址） |
-        let tableColumns = data.tableColumns;
       function generateTableComponent(columns,list){
         return tableRender(h, {
               columns,
@@ -176,9 +177,8 @@ function renderChoosePhanel(){
               list
             })   
       }
-      function generateLayout(header,content, layoutFooter,layoutPlugin) {
+      function generateLayout(header,content, layoutFooter) {
         return h('div', {},[
-            layoutPlugin,
             // h('el-aside', {
             //   width: '200px'
             // },[layoutAsider]),
@@ -186,21 +186,28 @@ function renderChoosePhanel(){
 
         ])
     }
-    function generateLayoutPlugin() {
-      let pluginDoms = data.pluginMap.layoutPlugins.map(plugin=>plugin(h,notice))
-
-      return h('div',{
-        class: 'more'
-      }, pluginDoms)
+    function generateLayoutPlugin(plugins = ['search-plugin']) {
+      let pluginDoms = plugins.map(pluginName => data.pluginMap[pluginName].plugin(h,notice))
+      // data.pluginMap.layoutPlugins.map(plugin=>plugin(h,notice))
+      return <div class="more">
+        {pluginDoms}
+      </div>
   }
     function generateLayoutContent() {
       return (
-        <el-tabs tab-position="left">
-          <el-tab-pane label="service">{generateTableComponent(data.tableColumnsMap[2],data.serviceTargetList)}</el-tab-pane>
-          <el-tab-pane label="vuex">{generateTableComponent(data.tableColumnsMap[1],data.targetList)}</el-tab-pane>
+        <el-tabs 
+        value='vuex'
+        tab-position="left">
+          <el-tab-pane label="service" name="service">
+            {generateLayoutPlugin(['cache-apply-plugin','search-service-plugin'])}
+            {generateTableComponent(data.tableColumnsMap[2],data.serviceTargetList)}
+          </el-tab-pane>
+          <el-tab-pane label="vuex" name="vuex">
+              {generateLayoutPlugin(['search-plugin'])}
+              {generateTableComponent(data.tableColumnsMap[1],data.targetList)}
+          </el-tab-pane>
         </el-tabs>
       )
-      return generateTableComponent(tableColumns,data.targetList);
     }
     function generateLayoutHeader() {
         // 顶部功能按钮
@@ -237,23 +244,12 @@ function renderChoosePhanel(){
       return h('el-row', {
           gutter: 20
       },content)
-  }
+    }
     let layoutHeader = generateLayoutHeader();
     let layoutContent = generateLayoutContent();
     let layoutFooter = generateLayoutFooter();
-    let layoutPlugin = generateLayoutPlugin();
-    // generateTabs({
-    //     props: {
-    //         // type: 'border-card',
-    //         stretch: 'true',
-    //         'tab-position':"left"
-    //     },
-    //     events: {
-            
-    //     },
-    //     children
-    // },data,'currentRouteKey')
-    let message = generateLayout(layoutHeader,layoutContent, layoutFooter, layoutPlugin);
+    
+    let message = generateLayout(layoutHeader,layoutContent, layoutFooter);
       // let message = 
       Vue.prototype.$msgbox({ 
         title: 'Vuex数据映射列表',
@@ -278,47 +274,7 @@ function renderChoosePhanel(){
         elDialogDrag('vuex-msgbox');
       }, 1000);
     }
-    // function _renderChoosePhanelForNormal() {
-    //   // 渲染无elementUi状态下的插件面板 w-todo
-    //   function generateTableComponent(columns,list){
-    //     return (
-    //       <div>
-    //         <table table className='tabel' border="2">
-    //           <thead className='theads'>
-    //             <tr>
-    //               {
-    //               columns.map((head,index)=>
-    //                 <th key={index}>{head.label}</th> ) 
-    //               }
-    //             </tr>
-    //           </thead>
-
-    //         </table>
-    //       </div>
-    //     )
-    //   }
-    //   if(data.showPhanel){
-    //     let domOptions = {tag:'div',text:'vuex插件对无elementUi状态下的处理待优化哦~，敬请期待',opts:{
-    //       style: {
-    //         position : "fixed",
-    //         bottom : "500px",
-    //         left : `50%`,
-    //         transform: 'translateX(-50%)',
-    //         cursor : "pointer",
-    //         zIndex: 99,
-    //         color: 'rgb(51, 136, 255)'
-    //       },
-    //       class : 'vuex_pannel_class',
-    //     },childrens:[]}
-    //     let listItem = creatDom(domOptions)
-    //     // mountToBody(listItem)
-    //     $mount('.vuex_debug_pannel_class',listItem)
-    //   }else {
-    //     remove_items('.vuex_debug_pannel_class')
-    //   }
-    // }
-  }
-
+}
 export function notice(msg,type = 'success') {
   if(hasElementUI) 
       {
