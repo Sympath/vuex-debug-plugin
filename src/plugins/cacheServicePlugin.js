@@ -1,16 +1,17 @@
 import { eachObj, mergeArr } from "../../util";
-
+let timeId = '';
 export default function cacheApplyPlugin(data) {
     data.applyCache = false;
     return {
       type: '1',
       handler: (h, notice) => {
-        setTimeout(() => {
+        clearTimeout(timeId);
+        timeId = setTimeout(() => {
           var switchDom = document.querySelector('#cache');
           switchDom.addEventListener('click', function(e) {
-            let oldStatus = data.applyCache
+            let oldStatus = data.isChangeServiceCache
             let newStatus = !oldStatus;
-            data.applyCache = newStatus;
+            data.isChangeServiceCache = newStatus;
             let noticeInfo = '';
             if(newStatus){
               switchDom.classList.add('is-checked')

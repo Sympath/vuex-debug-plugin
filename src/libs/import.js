@@ -50,7 +50,7 @@ export let data = {
             // 在弹窗关闭时会判断 如果此属性为true 则会重置vuex数据缓存
             data.isChangeCache = true;
             row.annotation = val;
-          }, `annotation${$index}`, row.annotation)
+          }, `vuexAnnotation${$index}`, row.annotation)
       },
       },
       // {
@@ -94,9 +94,9 @@ export let data = {
           renderCell: (h, {row,column,$index}) => {
             return genInput(h,(val) => {
               // 在弹窗关闭时会判断 如果此属性为true 则会重置vuex数据缓存
-              data.isChangeCache = true;
+              // data.isChangeCache = true;
               row.annotation = val;
-            }, `annotation${$index}`, row.annotation)
+            }, `serviceAnnotation${$index}`, row.annotation)
            }
         },
          {
@@ -211,9 +211,15 @@ export function noNeedResolve(moduleName, type, module) {
 
 function initService(serviceMap) {
   let vuexPluginServiceData = JSON.parse(localStorage.getItem('vuexPluginServiceData')) || [];
-  
+  data.isChangeServiceCache = false;
+  // 关闭时校验，如果启动了更新机制，则重置缓存数据
+  data.beforeDestroys.push((data)=> {
+    if(data.isChangeServiceCache){
+      localStorage.setItem('vuexPluginServiceData', JSON.stringify(data.serviceList))
+    }
+  })
   // // 如果开启缓存的话，则走缓存数据
-  if(data.applyCache && vuexPluginServiceData.length > 0){
+  if(vuexPluginServiceData.length > 0){
     data.serviceList = vuexPluginServiceData;
     return
   }

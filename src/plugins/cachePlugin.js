@@ -5,7 +5,6 @@ export default function cachePlugin(data) {
     data.sourceList.push(...localStorageDatas);
     data.isChangeCache = false;
     data.beforeDestroys.push((data) => {
-      debugger
       if(data.isChangeCache){
         setStoreVuexPluginData(data.sourceList)
       }
