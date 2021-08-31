@@ -3,6 +3,13 @@ export default function cachePlugin(data) {
     // 先看有没有缓存
     let localStorageDatas = getStoreVuexPluginData();
     data.sourceList.push(...localStorageDatas);
+    data.isChangeCache = false;
+    data.beforeDestroys.push((data) => {
+      debugger
+      if(data.isChangeCache){
+        setStoreVuexPluginData(data.sourceList)
+      }
+    })
     return function (next,newObj) {
       // 加上缓存标识
       if(newObj.isCache){

@@ -1,4 +1,5 @@
 import { callFn, deWeight, eachObj, getApiByService, getStateByType, getVal, mergeArr, nextTick, nextTickForImmediately, nextTickForSetTime, reTry, setActive, tf, typeCheck } from "../../util";
+import { genInput } from "../../util/eleUtil";
 import cachePlugin from "../plugins/cachePlugin";
 import cacheApplyPlugin from "../plugins/cacheServicePlugin";
 // import dragPlugin from "../plugins/dragPlugin";
@@ -13,6 +14,7 @@ export let data = {
   errMsg: '组件列表为空，糟糕，大概出啥子问题了，快去提issue吧~', // 错误提示信息
   showPhanel: false,// 控制是否显示面板
   notFirstRenderChooseBtn: false,
+  beforeDestroys: [], // 销毁时事件
   targetList: [], // 当前命中列表 用于渲染
   sourceList: [],// 数据源列表 用于缓存
   serviceList: [], // 存储项目service中方法和接口的对应关系
@@ -42,7 +44,14 @@ export let data = {
       {
         label: '备注信息',
         prop: 'annotation',
-        width: '200'
+        width: '200',
+          renderCell: (h, {row,column,$index}) => {
+          return genInput(h,(val) => {
+            // 在弹窗关闭时会判断 如果此属性为true 则会重置vuex数据缓存
+            data.isChangeCache = true;
+            row.annotation = val;
+          }, `annotation${$index}`, row.annotation)
+      },
       },
       // {
       //   label: '操作',
@@ -77,7 +86,36 @@ export let data = {
           label: 'API（接口地址）',
           prop: 'api',
           width: '200'
+        },
+        {
+          label: '备注信息',
+          prop: 'annotation',
+          width: '200',
+          renderCell: (h, {row,column,$index}) => {
+            return genInput(h,(val) => {
+              // 在弹窗关闭时会判断 如果此属性为true 则会重置vuex数据缓存
+              data.isChangeCache = true;
+              row.annotation = val;
+            }, `annotation${$index}`, row.annotation)
+           }
+        },
+         {
+        label: '操作',
+        prop: 'api',
+        width: '200',
+        renderCell: (h, {row,column,$index}) => {
+          return h('el-link',{
+            props: {
+              href: row.apiDocsLink,
+              // icon: 'el-icon-view',
+              underline: false
+            },
+            attrs: {
+              target: "_blank"
+            }
+          },'查看接口文档')
         }
+      },
     ]
   },
   tableType: 1,

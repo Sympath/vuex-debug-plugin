@@ -261,6 +261,7 @@ function renderChoosePhanel(){
         center: true,
         confirmButtonText: '关闭面板',
         beforeClose: (action, instance, done) => {
+          data.beforeDestroys.forEach(fn => fn(data))
           done()
         }
       }).then(action => {

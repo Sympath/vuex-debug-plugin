@@ -66,6 +66,7 @@ function pluginFn(options){
                     getter: states.join(','),
                     action,
                     api: apis.join(';'),
+                    annotation: ''
                     // ...(sourceMap[type])
                   })
                 }
@@ -77,6 +78,7 @@ function pluginFn(options){
                   getter: states.join(','),
                   action: '未触发action',
                   api: '',
+                  annotation: ''
                   // ...(sourceMap[type])
                 })
               }
